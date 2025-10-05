@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hyron
+    username: hyron
+    password: hyron
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+server:
+  port: 8080
