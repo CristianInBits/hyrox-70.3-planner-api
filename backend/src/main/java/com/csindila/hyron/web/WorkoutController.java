@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.csindila.hyron.workout.dtos.WorkoutCreateRequest;
-import com.csindila.hyron.workout.dtos.WorkoutDto;
+import com.csindila.hyron.workout.dto.WorkoutCreateRequest;
+import com.csindila.hyron.workout.dto.WorkoutDto;
 import com.csindila.hyron.workout.model.Workout;
 import com.csindila.hyron.workout.repo.WorkoutRepository;
 
@@ -35,7 +35,7 @@ public class WorkoutController {
         w.setRpe(req.rpe());
         w.setFcMedia(req.fcMedia());
         w.setWattsMedios(req.wattsMedios());
-        w.setNotas(req.notas());
+        w.setNotas(req.notas() == null ? null : req.notas().trim().isEmpty() ? null : req.notas().trim());
         var saved = repo.save(w);
         return toDto(saved);
     }
