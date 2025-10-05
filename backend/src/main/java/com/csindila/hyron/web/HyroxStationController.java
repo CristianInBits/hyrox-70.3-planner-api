@@ -31,8 +31,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class HyroxStationController {
 
-    private HyroxStationRepository stations;
-    private WorkoutRepository workouts;
+    private final HyroxStationRepository stations;
+    private final WorkoutRepository workouts;
 
     // Listas estaciones de un workout HYROX
     @GetMapping("/workouts/{workoutId}/stations")

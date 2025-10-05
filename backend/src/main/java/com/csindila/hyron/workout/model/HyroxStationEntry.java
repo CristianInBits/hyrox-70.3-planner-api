@@ -1,7 +1,12 @@
 package com.csindila.hyron.workout.model;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,6 +36,8 @@ public class HyroxStationEntry {
     private Workout workout;
 
     @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "station", columnDefinition = "hyrox_station", nullable = false)
     private HyroxStation station;
 
     @Column(name = "peso_kg", precision = 6, scale = 2)
@@ -44,4 +51,8 @@ public class HyroxStationEntry {
 
     @Column(length = 300)
     private String notas;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private OffsetDateTime createdAt;
 }

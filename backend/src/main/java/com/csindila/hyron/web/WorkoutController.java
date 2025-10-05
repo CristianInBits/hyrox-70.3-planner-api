@@ -3,6 +3,8 @@ package com.csindila.hyron.web;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +26,8 @@ public class WorkoutController {
 
     private final WorkoutRepository repo;
 
-    @PostMapping()
-    public WorkoutDto create(@Valid @RequestBody WorkoutCreateRequest req) {
+    @PostMapping
+    public ResponseEntity<WorkoutDto> create(@Valid @RequestBody WorkoutCreateRequest req) {
         var w = new Workout();
         w.setId(UUID.randomUUID());
         w.setDate(req.date());
@@ -37,7 +39,8 @@ public class WorkoutController {
         w.setWattsMedios(req.wattsMedios());
         w.setNotas(req.notas() == null ? null : req.notas().trim().isEmpty() ? null : req.notas().trim());
         var saved = repo.save(w);
-        return toDto(saved);
+        var dto = toDto(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @GetMapping()
