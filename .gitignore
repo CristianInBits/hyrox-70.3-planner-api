@@ -1,0 +1,25 @@
+# === Gradle ===
+.gradle/
+build/
+out/
+
+# === IDE ===
+.vscode/
+.idea/
+*.iml
+
+# === Sistema ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+
+# === OS ===
+# Archivos temporales de Windows/Linux/macOS
+*.tmp
+*.swp
+
+# === Env ===
+.env
+.env.*
