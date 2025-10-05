@@ -21,6 +21,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
 
     runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-database-postgresql")
 
      // Añadir Lombok
     compileOnly("org.projectlombok:lombok")
