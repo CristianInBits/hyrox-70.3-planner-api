@@ -1,4 +1,4 @@
-package com.csindila.hyron.workout.dtos;
+package com.csindila.hyron.workout.dto;
 
 import com.csindila.hyron.workout.model.WorkoutType;
 import java.util.UUID;

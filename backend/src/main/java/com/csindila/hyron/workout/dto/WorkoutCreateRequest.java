@@ -1,4 +1,4 @@
-package com.csindila.hyron.workout.dtos;
+package com.csindila.hyron.workout.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
