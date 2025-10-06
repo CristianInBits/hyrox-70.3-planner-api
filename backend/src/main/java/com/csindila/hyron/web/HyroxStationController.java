@@ -53,6 +53,7 @@ public class HyroxStationController {
         e.setSeries(req.series());
         e.setReps(req.reps());
         e.setTiempoParcialSeg(req.tiempoParcialSeg());
+        e.setDistanceM(req.distanceM());
         e.setNotas(req.notas());
         return toDto(stations.save(e));
     }
@@ -69,6 +70,8 @@ public class HyroxStationController {
             e.setReps(req.reps());
         if (req.tiempoParcialSeg() != null)
             e.setTiempoParcialSeg(req.tiempoParcialSeg());
+        if (req.distanceM() != null)
+            e.setDistanceM(req.distanceM());
         if (req.notas() != null)
             e.setNotas(req.notas());
         return toDto(stations.save(e));
@@ -92,6 +95,7 @@ public class HyroxStationController {
                 e.getSeries(),
                 e.getReps(),
                 e.getTiempoParcialSeg(),
+                e.getDistanceM(),
                 e.getNotas());
     }
 

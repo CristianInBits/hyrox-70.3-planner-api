@@ -49,6 +49,9 @@ public class HyroxStationEntry {
     @Column(name = "tiempo_parcial_seg")
     private Integer tiempoParcialSeg;
 
+    @Column(name = "distance_m")
+    private Integer distanceM;
+
     @Column(length = 300)
     private String notas;
 

@@ -13,5 +13,6 @@ public record HyroxStationDto(
     Integer series,
     Integer reps,
     Integer tiempoParcialSeg,
+    Integer distanceM,
     String notas
 ) {}

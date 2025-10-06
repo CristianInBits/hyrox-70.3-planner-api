@@ -12,5 +12,6 @@ public record HyroxStationUpdateRequest(
     @PositiveOrZero Integer series,
     @PositiveOrZero Integer reps,
     @PositiveOrZero Integer tiempoParcialSeg,
+    @PositiveOrZero Integer distanceM,
     @Size(max = 300) String notas
 ) {}
