@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StatsPanel from "./components/StatsPanel";
 
 type WorkoutType = "RUN" | "BIKE" | "SWIM" | "HYROX" | "GYM";
 
@@ -155,7 +156,7 @@ export default function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    
+
     if (!res.ok) { alert("Error al editar"); return; }
     await loadStations();
   }
@@ -321,6 +322,8 @@ export default function App() {
           </ul>
         )}
       </section>
+
+      <StatsPanel />
 
       {/* === Estaciones Hyrox === */}
       <section className="border-t pt-6">
