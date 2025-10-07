@@ -1,78 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import StatsPanel from "./components/StatsPanel";
 
-/* =====================================================
- *  Pequeño kit de UI inline (sin dependencias externas)
- *  - Mantiene todo en este archivo para que sea fácil
- *  - Puedes extraerlos a ./components/ui más adelante
- * ===================================================== */
+// UI
+import Card from "./components/ui/Card";
+import Button from "./components/ui/Button";
+import Input from "./components/ui/Input";
+import Select from "./components/ui/Select";
+import Label from "./components/ui/Label";
 
-type DivProps = React.HTMLAttributes<HTMLDivElement> & { asChild?: boolean };
-const Card = ({ className = "", ...props }: DivProps) => (
-  <div
-    className={
-      "rounded-2xl border border-zinc-200/70 bg-white/80 backdrop-blur p-4 shadow-sm " +
-      "dark:bg-zinc-900/70 dark:border-zinc-800 " +
-      className
-    }
-    {...props}
-  />
-);
-
-const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-    {children}
-  </h2>
-);
-
-const Label = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <span className={"text-sm font-medium text-zinc-700 dark:text-zinc-300 " + className}>{children}</span>
-);
-
-type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
-const Input = ({ className = "", ...props }: InputProps) => (
-  <input
-    className={
-      "h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm " +
-      "placeholder:text-zinc-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 " +
-      "dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-100 " +
-      className
-    }
-    {...props}
-  />
-);
-
-type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement>;
-const Select = ({ className = "", children, ...props }: SelectProps) => (
-  <select
-    className={
-      "h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm shadow-sm " +
-      "focus:outline-none focus:ring-2 focus:ring-indigo-500/60 " +
-      "dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-100 " +
-      className
-    }
-    {...props}
-  >
-    {children}
-  </select>
-);
-
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "outline" | "ghost" };
-const Button = ({ className = "", variant = "primary", ...props }: ButtonProps) => {
-  const base = "inline-flex items-center justify-center gap-2 rounded-lg px-4 h-10 text-sm font-medium transition";
-  const variants: Record<string, string> = {
-    primary: "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500/60 disabled:opacity-50",
-    outline:
-      "border border-zinc-300 hover:bg-zinc-50 text-zinc-900 dark:text-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900",
-    ghost: "hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100",
-  };
-  return <button className={`${base} ${variants[variant]} ${className}`} {...props} />;
-};
-
-/* =========================
- *  Tipos del dominio
- * ========================= */
-
+// Tipos
 type WorkoutType = "RUN" | "BIKE" | "SWIM" | "HYROX" | "GYM";
 
 type HyroxStation =
@@ -83,7 +19,7 @@ type Workout = {
   id: string;
   date: string;
   type: WorkoutType;
-  durationMin: number;
+  durationSec: number;              // <-- CAMBIO: ahora en segundos
   distanceKm?: number | null;
   rpe: number;
   fcMedia?: number | null;
@@ -103,15 +39,11 @@ type StationEntry = {
   notas?: string | null;
 };
 
-/* =========================
- *  Constantes API
- * ========================= */
+// API
 const API = "http://localhost:8080/api/workouts";
-const API_ST = "http://localhost:8080/api"; // base para estaciones
+const API_ST = "http://localhost:8080/api";
 
-/* =========================
- *  Utils simples
- * ========================= */
+// Utils
 function fmtDate(iso: string) {
   try {
     const d = new Date(iso + "T00:00:00");
@@ -121,25 +53,34 @@ function fmtDate(iso: string) {
   }
 }
 
-function calcPaceMinPerKm(durationMin: number, distanceKm?: number | null) {
+function fmtMmSs(totalSec: number) {
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function calcPaceMinPerKm(durationSec: number, distanceKm?: number | null) {
   if (!distanceKm || distanceKm <= 0) return null;
-  const pace = durationMin / distanceKm; // min/km
-  const whole = Math.floor(pace);
-  const sec = Math.round((pace - whole) * 60);
+  const paceMin = (durationSec / 60) / distanceKm; // min/km
+  const whole = Math.floor(paceMin);
+  const sec = Math.round((paceMin - whole) * 60);
   return `${whole}:${sec.toString().padStart(2, "0")} min/km`;
 }
 
+// App
 export default function App() {
   const [items, setItems] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [selectedHyroxId, setSelectedHyroxId] = useState<string>("");
+
   const hyroxWorkouts = useMemo(() => items.filter((w) => w.type === "HYROX"), [items]);
 
+  // Form principal: guardo minutos y segundos por separado y convierto a durationSec al enviar
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     type: "RUN" as WorkoutType,
-    durationMin: 30,
+    durationMin: 30,     // solo en UI
+    durationSeg: 0,      // solo en UI
     rpe: 6,
     distanceKm: "",
     fcMedia: "",
@@ -156,8 +97,10 @@ export default function App() {
     distanceM: "",
     notas: "",
   });
+
   const [stations, setStations] = useState<StationEntry[]>([]);
 
+  // Carga workouts
   const load = async () => {
     setLoading(true);
     const res = await fetch(API);
@@ -166,9 +109,7 @@ export default function App() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function loadStations() {
     if (!selectedHyroxId) {
@@ -179,23 +120,27 @@ export default function App() {
     const data = await res.json();
     setStations(data);
   }
+  useEffect(() => { loadStations(); }, [selectedHyroxId]);
 
-  useEffect(() => {
-    loadStations();
-  }, [selectedHyroxId]);
-
+  // Crear workout -> envia durationSec
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const min = Number.isFinite(form.durationMin) ? form.durationMin : 0;
+    const seg = Number.isFinite(form.durationSeg) ? form.durationSeg : 0;
+    const safeSeg = Math.max(0, Math.min(59, seg)); // clamp 0..59
+    const durationSec = min * 60 + safeSeg;
+
     const payload = {
       date: form.date,
       type: form.type,
-      durationMin: Number(form.durationMin),
+      durationSec, // <-- CAMBIO: ahora enviamos segundos
       rpe: Number(form.rpe),
       distanceKm: form.distanceKm === "" ? null : Number(form.distanceKm),
       fcMedia: form.fcMedia === "" ? null : Number(form.fcMedia),
       wattsMedios: form.wattsMedios === "" ? null : Number(form.wattsMedios),
       notas: form.notas?.trim() || null,
     };
+
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,6 +154,7 @@ export default function App() {
     await load();
   };
 
+  // Estaciones
   async function createStation(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedHyroxId) {
@@ -256,11 +202,9 @@ export default function App() {
     const nuevaDist = prompt("Nueva distancia (m, vacío=sin cambio):", e.distanceM?.toString() ?? "");
 
     const payload: any = {};
-
     if (nuevoTiempo !== null && nuevoTiempo !== "") payload.tiempoParcialSeg = Number(nuevoTiempo);
     if (nuevoPeso !== null && nuevoPeso !== "") payload.pesoKg = Number(nuevoPeso);
     if (nuevaDist !== null && nuevaDist !== "") payload.distanceM = Number(nuevaDist);
-
     if (Object.keys(payload).length === 0) return;
 
     const res = await fetch(`${API_ST}/stations/${id}`, {
@@ -276,21 +220,22 @@ export default function App() {
     await loadStations();
   }
 
-  /* =========================
-   *  UI
-   * ========================= */
+  // UI
   return (
     <div className="min-h-dvh bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-black">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-zinc-200/80 backdrop-blur bg-white/70 dark:bg-zinc-950/70 dark:border-zinc-800">
         <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tight">Hyron <span className="opacity-70">—</span> <span className="text-indigo-600">Registrar entreno</span></h1>
+          <h1 className="text-xl font-bold tracking-tight">
+            Hyron <span className="opacity-70">—</span>{" "}
+            <span className="text-indigo-600">Registrar entreno</span>
+          </h1>
           <div className="text-xs text-zinc-500">MVP</div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6 space-y-8">
-        {/* ====== Formulario ====== */}
+        {/* Formulario */}
         <Card>
           <form onSubmit={submit} className="space-y-6">
             <div className="flex items-center justify-between">
@@ -298,7 +243,7 @@ export default function App() {
               <Button type="submit">Guardar</Button>
             </div>
 
-            {/* Bloque 1: Datos básicos */}
+            {/* Datos básicos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex flex-col gap-1">
                 <Label>Fecha</Label>
@@ -325,15 +270,27 @@ export default function App() {
               </label>
             </div>
 
-            {/* Bloque 2: Métricas principales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Métricas principales */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <label className="flex flex-col gap-1">
-                <Label>Duración (min)</Label>
+                <Label>Duración — Minutos</Label>
                 <Input
                   type="number"
-                  min={1}
+                  min={0}
                   value={form.durationMin}
                   onChange={(e) => setForm({ ...form, durationMin: Number(e.target.value) })}
+                  required
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <Label>Duración — Segundos</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={form.durationSeg}
+                  onChange={(e) => setForm({ ...form, durationSeg: Number(e.target.value) })}
                   required
                 />
               </label>
@@ -350,7 +307,7 @@ export default function App() {
                 />
               </label>
 
-              <label className="md:col-span-2 flex flex-col gap-1">
+              <label className="md:col-span-3 flex flex-col gap-1">
                 <Label>Distancia (km, opc.)</Label>
                 <Input
                   type="number"
@@ -361,7 +318,7 @@ export default function App() {
               </label>
             </div>
 
-            {/* Bloque 3: Biométricas */}
+            {/* Biométricas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex flex-col gap-1">
                 <Label>FC media</Label>
@@ -384,7 +341,7 @@ export default function App() {
               </label>
             </div>
 
-            {/* Bloque 4: Notas */}
+            {/* Notas */}
             <div className="grid grid-cols-1 gap-4">
               <label className="flex flex-col gap-1">
                 <Label>Notas (opc., máx 500)</Label>
@@ -399,9 +356,9 @@ export default function App() {
           </form>
         </Card>
 
-        {/* ====== Listado entrenos ====== */}
+        {/* Listado */}
         <section className="space-y-3">
-          <SectionTitle>Entrenos</SectionTitle>
+          <h2 className="text-lg font-semibold tracking-tight">Entrenos</h2>
           {loading ? (
             <Card className="text-sm text-zinc-600 dark:text-zinc-400">Cargando…</Card>
           ) : items.length === 0 ? (
@@ -411,14 +368,14 @@ export default function App() {
           ) : (
             <div className="grid gap-3">
               {items.map((w) => {
-                const pace = w.type === "RUN" ? calcPaceMinPerKm(w.durationMin, w.distanceKm) : null;
+                const pace = w.type === "RUN" ? calcPaceMinPerKm(w.durationSec, w.distanceKm) : null;
                 return (
                   <Card key={w.id} className="p-4">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                       <div>
                         <div className="text-sm text-zinc-500">{fmtDate(w.date)}</div>
                         <div className="text-base font-medium">
-                          {w.type} · {w.durationMin} min
+                          {w.type} · {fmtMmSs(w.durationSec)}
                           {w.distanceKm ? ` · ${w.distanceKm} km` : ""}
                           {pace ? ` · ${pace}` : ""}
                         </div>
@@ -430,8 +387,12 @@ export default function App() {
                         {w.notas && <div className="text-sm mt-1">{w.notas}</div>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs">{w.type}</span>
-                        <span className="rounded-full bg-indigo-100 text-indigo-700 px-2 py-1 text-xs dark:bg-indigo-900/30 dark:text-indigo-300">RPE {w.rpe}</span>
+                        <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs">
+                          {w.type}
+                        </span>
+                        <span className="rounded-full bg-indigo-100 text-indigo-700 px-2 py-1 text-xs dark:bg-indigo-900/30 dark:text-indigo-300">
+                          RPE {w.rpe}
+                        </span>
                       </div>
                     </div>
                   </Card>
@@ -441,30 +402,29 @@ export default function App() {
           )}
         </section>
 
-        {/* ====== Stats ====== */}
         <StatsPanel />
 
-        {/* ====== Estaciones Hyrox ====== */}
+        {/* Estaciones Hyrox */}
         <section className="space-y-4">
-          <SectionTitle>Estaciones Hyrox</SectionTitle>
-
+          <h2 className="text-lg font-semibold tracking-tight">Estaciones Hyrox</h2>
           <Card>
-            {/* Selector de workout HYROX */}
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-end mb-4">
               <label className="flex flex-col gap-1 w-full md:w-96">
                 <Label>Workout HYROX</Label>
-                <Select value={selectedHyroxId} onChange={(e) => setSelectedHyroxId(e.target.value)}>
+                <Select
+                  value={selectedHyroxId}
+                  onChange={(e) => setSelectedHyroxId(e.target.value)}
+                >
                   <option value="">— elige workout HYROX —</option>
                   {hyroxWorkouts.map((w) => (
                     <option key={w.id} value={w.id}>
-                      {fmtDate(w.date)} · {w.durationMin} min · RPE {w.rpe}
+                      {fmtDate(w.date)} · {fmtMmSs(w.durationSec)} · RPE {w.rpe}
                     </option>
                   ))}
                 </Select>
               </label>
             </div>
 
-            {/* Form de creación de estación */}
             <form onSubmit={createStation} className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
               <label className="flex flex-col gap-1">
                 <Label>Estación</Label>

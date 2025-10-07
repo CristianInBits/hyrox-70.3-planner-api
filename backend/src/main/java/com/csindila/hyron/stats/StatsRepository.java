@@ -17,12 +17,13 @@ public class StatsRepository {
   @PersistenceContext
   private EntityManager em;
 
-  // A) Volumen semanal en rango [from,to] -> ahora suma duration_sec
+  // A) Volumen semanal en rango [from,to] (guardamos total_sec y convertimos en
+  // el service)
   public List<Map<String, Object>> weeklyVolume(LocalDate from, LocalDate to) {
     var q = em.createNativeQuery("""
         SELECT
           date_trunc('week', w.date)::date AS week_start,
-          SUM(w.duration_sec) AS total_seconds,
+          SUM(w.duration_sec) AS total_sec,
           COUNT(*) AS sessions
         FROM workouts w
         WHERE w.date >= :from AND w.date <= :to
@@ -39,25 +40,28 @@ public class StatsRepository {
     for (Object[] r : rows) {
       Map<String, Object> m = new HashMap<>();
       m.put("weekStart", r[0]); // java.sql.Date
-      m.put("totalSeconds", ((Number) r[1]).intValue());
+      m.put("totalSec", ((Number) r[1]).longValue()); // <-- ahora en segundos
       m.put("sessions", ((Number) r[2]).intValue());
       out.add(m);
     }
     return out;
   }
 
-  // B) Mejor 5K estimado en rango (RUN con distance_km>0)
-  // duration_sec y est_5k_sec en segundos
+  // B) Mejor 5K estimado en rango (RUN con distance_km > 0) usando duration_sec
+  // Fórmula: est_5k_min = (duration_sec / distance_km) / 60 * 5
   public Optional<Map<String, Object>> bestRun5k(LocalDate from, LocalDate to) {
     var q = em.createNativeQuery("""
         SELECT
-          id, date, duration_sec, distance_km,
-          (duration_sec / NULLIF(distance_km,0)) * 5.0 AS est_5k_sec
+          id,
+          date,
+          duration_sec,
+          distance_km,
+          (duration_sec / NULLIF(distance_km,0)) / 60.0 * 5.0 AS est_5k_min
         FROM workouts
         WHERE type = 'RUN'
           AND distance_km IS NOT NULL AND distance_km > 0
           AND date >= :from AND date <= :to
-        ORDER BY est_5k_sec ASC
+        ORDER BY est_5k_min ASC
         LIMIT 1
         """);
     q.setParameter("from", from);
@@ -74,12 +78,11 @@ public class StatsRepository {
     m.put("date", r[1]); // java.sql.Date
     m.put("durationSec", ((Number) r[2]).intValue());
     m.put("distanceKm", r[3] == null ? null : ((Number) r[3]).doubleValue());
-    m.put("estimated5kSec", r[4] == null ? null : ((Number) r[4]).doubleValue());
+    m.put("estimated5kMin", r[4] == null ? null : ((Number) r[4]).doubleValue());
     return Optional.of(m);
   }
 
-  // C) Mejor tiempo por estación Hyrox en rango (sin cambios: ya estaba en
-  // segundos)
+  // C) Mejor tiempo por estación Hyrox (mínimo tiempo_parcial_seg) – sin cambios
   public List<Map<String, Object>> bestHyroxStations(LocalDate from, LocalDate to) {
     var q = em.createNativeQuery("""
         SELECT e.station, MIN(e.tiempo_parcial_seg) AS best_sec

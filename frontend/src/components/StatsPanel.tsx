@@ -12,7 +12,7 @@ type BestRunRes = {
     to: string;
     workoutId?: string;
     date?: string;
-    durationMin?: number;
+    durationSec?: number;
     distanceKm?: number;
     estimated5kMin?: number;
 };
@@ -24,7 +24,7 @@ type Workout = {
     id: string;
     date: string;       // "YYYY-MM-DD"
     type: "RUN" | "BIKE" | "SWIM" | "HYROX" | "GYM";
-    durationMin: number;
+    durationSec: number;
     distanceKm?: number | null;
     rpe: number;
     fcMedia?: number | null;
@@ -97,7 +97,7 @@ export default function StatsPanel() {
     }, [workouts, from, to]);
 
     const avgRunPace = useMemo(() => {
-        const totalMin = runsInRange.reduce((acc, w) => acc + w.durationMin, 0);
+        const totalMin = runsInRange.reduce((acc, w) => acc + (w.durationSec / 60), 0);
         const totalKm = runsInRange.reduce((acc, w) => acc + (w.distanceKm ?? 0), 0);
         const pace = paceMinPerKm(totalMin, totalKm);
         return pace; // min/km
@@ -115,7 +115,7 @@ export default function StatsPanel() {
                 id: w.id,
                 date: w.date,
                 type: w.type,
-                durationMin: w.durationMin,
+                durationSec: w.durationSec,
                 distanceKm: w.distanceKm ?? "",
                 rpe: w.rpe,
                 fcMedia: w.fcMedia ?? "",
@@ -123,7 +123,7 @@ export default function StatsPanel() {
                 notas: (w.notas ?? "").replace(/\n/g, " ").replace(/"/g, '""'),
             }));
 
-        const header = ["id", "date", "type", "durationMin", "distanceKm", "rpe", "fcMedia", "wattsMedios", "notas"];
+        const header = ["id", "date", "type", "durationSec", "distanceKm", "rpe", "fcMedia", "wattsMedios", "notas"];
         const csv = [
             header.join(","),
             ...rows.map(r => header.map(h => `"${String((r as any)[h])}"`).join(","))
