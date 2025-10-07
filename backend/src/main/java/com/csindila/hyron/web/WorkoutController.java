@@ -32,7 +32,7 @@ public class WorkoutController {
         w.setId(UUID.randomUUID());
         w.setDate(req.date());
         w.setType(req.type());
-        w.setDurationMin(req.durationMin());
+        w.setDurationSec(req.durationSec());
         w.setDistanceKm(req.distanceKm());
         w.setRpe(req.rpe());
         w.setFcMedia(req.fcMedia());
@@ -50,7 +50,7 @@ public class WorkoutController {
 
     private WorkoutDto toDto(Workout w) {
         return new WorkoutDto(
-                w.getId(), w.getDate(), w.getType(), w.getDurationMin(), w.getDistanceKm(), w.getRpe(), w.getFcMedia(),
+                w.getId(), w.getDate(), w.getType(), w.getDurationSec(), w.getDistanceKm(), w.getRpe(), w.getFcMedia(),
                 w.getWattsMedios(), w.getNotas());
     }
 }

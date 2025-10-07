@@ -9,7 +9,7 @@ public record WorkoutDto(
     UUID id,
     LocalDate date,
     WorkoutType type,
-    int durationMin,
+    int durationSec,
     BigDecimal distanceKm,
     int rpe,
     Integer fcMedia,

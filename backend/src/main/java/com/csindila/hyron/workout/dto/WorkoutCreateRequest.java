@@ -17,7 +17,7 @@ public record WorkoutCreateRequest(
 
     @NotNull LocalDate date,
     @NotNull WorkoutType type,
-    @Positive int durationMin,
+    @Positive int durationSec,
     @Min(1) @Max(10) int rpe,
     @DecimalMin(value ="0.0", inclusive = false) BigDecimal distanceKm,
     @PositiveOrZero Integer fcMedia,

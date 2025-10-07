@@ -34,8 +34,8 @@ public class Workout {
     @Column(nullable = false, length = 16)
     private WorkoutType type;
 
-    @Column(name = "duration_min", nullable = false)
-    private int durationMin;
+    @Column(name = "duration_sec", nullable = false)
+    private int durationSec;
 
     @Column(name = "distance_km", precision = 6, scale = 2)
     private BigDecimal distanceKm;
