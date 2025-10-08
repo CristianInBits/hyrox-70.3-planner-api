@@ -107,4 +107,57 @@ public class StatsRepository {
     }
     return out;
   }
+
+  // D) Calendario: agregados por día en rango [from,to]
+  public List<Map<String, Object>> calendarDaily(LocalDate from, LocalDate to) {
+    var q = em.createNativeQuery("""
+            SELECT w.date::date AS d,
+                   COUNT(*) AS sessions,
+                   SUM(w.duration_sec) AS total_sec
+            FROM workouts w
+            WHERE w.date >= :from AND w.date <= :to
+            GROUP BY d
+            ORDER BY d
+        """);
+    q.setParameter("from", from);
+    q.setParameter("to", to);
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows = q.getResultList();
+
+    var out = new ArrayList<Map<String, Object>>();
+    for (Object[] r : rows) {
+      var m = new HashMap<String, Object>();
+      m.put("date", r[0]); // java.sql.Date
+      m.put("sessions", ((Number) r[1]).intValue());
+      m.put("totalSec", ((Number) r[2]).longValue());
+      out.add(m);
+    }
+    return out;
+  }
+
+  // E) Listado simple por día (para el modal del calendario)
+  public List<Map<String, Object>> workoutsByDate(LocalDate day) {
+    var q = em.createNativeQuery("""
+            SELECT id, type, duration_sec, distance_km, rpe, notas
+            FROM workouts
+            WHERE date = :day
+            ORDER BY created_at
+        """);
+    q.setParameter("day", day);
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows = q.getResultList();
+
+    var out = new ArrayList<Map<String, Object>>();
+    for (Object[] r : rows) {
+      var m = new HashMap<String, Object>();
+      m.put("id", r[0]);
+      m.put("type", r[1]);
+      m.put("durationSec", ((Number) r[2]).intValue());
+      m.put("distanceKm", r[3] == null ? null : ((Number) r[3]).doubleValue());
+      m.put("rpe", ((Number) r[4]).intValue());
+      m.put("notas", (String) r[5]);
+      out.add(m);
+    }
+    return out;
+  }
 }
