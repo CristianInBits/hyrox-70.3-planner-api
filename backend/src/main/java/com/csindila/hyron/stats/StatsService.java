@@ -78,4 +78,21 @@ public class StatsService {
         res.put("items", repo.bestHyroxStations(range[0], range[1]));
         return res;
     }
+
+    public Map<String, Object> calendar(LocalDate from, LocalDate to) {
+        var range = resolveRange(from, to);
+        var days = repo.calendarDaily(range[0], range[1]).stream().map(row -> {
+            var m = new HashMap<String, Object>();
+            m.put("date", row.get("date"));
+            long totalSec = ((Number) row.get("totalSec")).longValue();
+            m.put("totalMinutes", (int) Math.ceil(totalSec / 60.0));
+            m.put("sessions", row.get("sessions"));
+            return m;
+        }).toList();
+        return Map.of("from", range[0], "to", range[1], "days", days);
+    }
+
+    public Map<String, Object> day(LocalDate date) {
+        return Map.of("date", date, "items", repo.workoutsByDate(date));
+    }
 }
