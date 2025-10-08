@@ -41,4 +41,17 @@ public class StatsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(service.bestHyroxStations(from, to));
     }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<?> calendar(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(service.calendar(from, to));
+    }
+
+    @GetMapping("/calendar/day")
+    public ResponseEntity<?> day(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(service.day(date));
+    }
 }
